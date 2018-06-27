@@ -1,11 +1,10 @@
-package kafka;
+package flopmaster;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import flopmaster.Message;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -17,7 +16,7 @@ import org.junit.runner.RunWith;
 import java.util.Properties;
 
 @RunWith(DataProviderRunner.class)
-public class KafkaFeederTest {
+public class FlopmasterKafkaFeederTest {
 
     private ObjectMapper objectMapper = new ObjectMapper();
     private Producer<String, String> producer;
@@ -43,13 +42,10 @@ public class KafkaFeederTest {
     @UseDataProvider("bets")
     public void sendBets(double stakeFactor, double betStake, double maxBetPercent, String userName) {
 
-        // given
         final Message message = new Message(stakeFactor, betStake, maxBetPercent, userName);
-        sendMessage(toJson(message));
 
-//        IntStream.rangeClosed(1, 10).forEach(i -> {
-//            sendMessage("message " + i);
-//        });
+        producer.send(new ProducerRecord<>("bets", "0", toJson(message)));
+
     }
 
     private String toJson(Message message) {
@@ -60,13 +56,6 @@ public class KafkaFeederTest {
         }
     }
 
-    private void sendMessage(String message) {
-
-
-
-        producer.send(new ProducerRecord<>("test", "MESSAGE", message));
-    }
-
     @DataProvider
     public static Object[][] bets() {
 
@@ -75,10 +64,7 @@ public class KafkaFeederTest {
             {0.3, 0.0, 75, "user_b"},
             {0.5, 0.0, 0,  "user_c"},
             {0.0, 0.0, 0,  "FLOPMASTER"},
-            {0.0, 0.0, 25,  "FLOPMASTER"},
+            {0.0, 0.0, 25, "FLOPMASTER"},
         };
     }
-
-
-
 }

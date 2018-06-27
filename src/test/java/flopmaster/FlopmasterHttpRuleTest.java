@@ -13,7 +13,7 @@ import org.springframework.web.client.RestTemplate;
 import java.net.URI;
 
 @RunWith(DataProviderRunner.class)
-public class FlopmasterRuleTest {
+public class FlopmasterHttpRuleTest {
 
     private static final String ALERTS_URL = "http://localhost:5005/alerts";
     final RestTemplate restTemplate = new RestTemplate();
