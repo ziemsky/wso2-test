@@ -1,3 +1,5 @@
+package basic;
+
 class Message {
 
     private String metaPropertyA;

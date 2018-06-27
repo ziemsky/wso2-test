@@ -1,3 +1,5 @@
+package basic;
+
 class Bet {
 
     private int amount;

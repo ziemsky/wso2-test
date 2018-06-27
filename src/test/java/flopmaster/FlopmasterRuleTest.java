@@ -1,3 +1,5 @@
+package flopmaster;
+
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
@@ -9,20 +11,19 @@ import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
-import java.util.UUID;
 
 @RunWith(DataProviderRunner.class)
-public class BasicRuleTest {
+public class FlopmasterRuleTest {
 
     private static final String ALERTS_URL = "http://localhost:5005/alerts";
     final RestTemplate restTemplate = new RestTemplate();
 
     @Test
     @UseDataProvider("bets")
-    public void test(int amount, double factor, String meta) {
+    public void test(double stakeFactor, double betStake, double maxBetPercent, String userName) {
 
         // given
-        final Message message = new Message(meta, new Bet(amount, factor));
+        final Message message = new Message(stakeFactor, betStake, maxBetPercent, userName);
 
         final RequestEntity<Message> requestEntity = RequestEntity
             .post(URI.create(ALERTS_URL))
@@ -41,17 +42,12 @@ public class BasicRuleTest {
     public static Object[][] bets() {
 
         return new Object[][] {
-            // amount   factor    meta
-            {10,        1.1,      randomString()},
-            {5,         3,        randomString()},
-            {10,        0.9,      randomString()},
-            {5,         0.8,      randomString()},
+            {0.3, 5.0, 0,  "user_a"},
+            {0.3, 0.0, 75, "user_b"},
+            {0.5, 0.0, 0,  "user_c"},
+            {0.0, 0.0, 0,  "FLOPMASTER"},
+            {0.0, 0.0, 25,  "FLOPMASTER"},
         };
-
-    }
-
-    private static String randomString() {
-        return UUID.randomUUID().toString();
     }
 }
 
