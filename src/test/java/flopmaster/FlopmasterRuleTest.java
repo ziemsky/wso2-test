@@ -37,7 +37,6 @@ public class FlopmasterRuleTest {
         // see logs
     }
 
-
     @DataProvider
     public static Object[][] bets() {
 
