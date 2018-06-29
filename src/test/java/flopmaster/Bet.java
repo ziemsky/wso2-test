@@ -2,7 +2,7 @@ package flopmaster;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class Message {
+public class Bet {
 
     @JsonProperty("stake_factor")
     private double stakeFactor;
@@ -16,7 +16,7 @@ public class Message {
     @JsonProperty("username")
     private String userName;
 
-    public Message(double stakeFactor, double betStake, double maxBetPercent, String userName) {
+    public Bet(double stakeFactor, double betStake, double maxBetPercent, String userName) {
 
         this.stakeFactor = stakeFactor;
         this.betStake = betStake;

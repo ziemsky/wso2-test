@@ -23,12 +23,12 @@ public class FlopmasterHttpRuleTest {
     public void test(double stakeFactor, double betStake, double maxBetPercent, String userName) {
 
         // given
-        final Message message = new Message(stakeFactor, betStake, maxBetPercent, userName);
+        final Bet bet = new Bet(stakeFactor, betStake, maxBetPercent, userName);
 
-        final RequestEntity<Message> requestEntity = RequestEntity
+        final RequestEntity<Bet> requestEntity = RequestEntity
             .post(URI.create(ALERTS_URL))
             .header(HttpHeaders.CONTENT_TYPE, MimeTypeUtils.APPLICATION_JSON_VALUE)
-            .body(message);
+            .body(bet);
 
         // when
         restTemplate.exchange(requestEntity, String.class);

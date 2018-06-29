@@ -42,29 +42,29 @@ public class FlopmasterKafkaFeederTest {
     @UseDataProvider("bets")
     public void sendBets(double stakeFactor, double betStake, double maxBetPercent, String userName) {
 
-        final Message message = new Message(stakeFactor, betStake, maxBetPercent, userName);
+        final Bet bet = new Bet(stakeFactor, betStake, maxBetPercent, userName);
 
-        producer.send(new ProducerRecord<>("bets", "0", toJson(message)));
-
-    }
-
-    private String toJson(Message message) {
-        try {
-            return objectMapper.writeValueAsString(message);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+        producer.send(new ProducerRecord<>("bets", "0", toJson(bet)));
     }
 
     @DataProvider
     public static Object[][] bets() {
 
         return new Object[][] {
-            {0.3, 5.0, 0,  "user_a"},
-            {0.3, 0.0, 75, "user_b"},
-            {0.5, 0.0, 0,  "user_c"},
-            {0.0, 0.0, 0,  "FLOPMASTER"},
-            {0.0, 0.0, 25, "FLOPMASTER"},
+            // stakeFactor, betStake, maxBetPercent, userName
+            {0.3,           5.0,      0,             "user_a"},
+            {0.3,           0.0,      75,            "user_b"},
+            {0.5,           0.0,      0,             "user_c"},
+            {0.0,           0.0,      0,             "FLOPMASTER"},
+            {0.0,           0.0,      25,            "FLOPMASTER"},
         };
+    }
+
+    private String toJson(Bet bet) {
+        try {
+            return objectMapper.writeValueAsString(bet);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
