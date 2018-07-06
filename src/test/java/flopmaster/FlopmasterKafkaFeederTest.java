@@ -13,6 +13,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.time.Instant;
 import java.util.Properties;
 
 @RunWith(DataProviderRunner.class)
@@ -40,9 +41,9 @@ public class FlopmasterKafkaFeederTest {
 
     @Test
     @UseDataProvider("bets")
-    public void sendBets(double stakeFactor, double betStake, double maxBetPercent, String userName) {
+    public void sendBets(String timestamp, double stakeFactor, double betStake, double maxBetPercent, String userName) {
 
-        final Bet bet = new Bet(stakeFactor, betStake, maxBetPercent, userName);
+        final Bet bet = new Bet(Instant.parse(timestamp).toEpochMilli(), stakeFactor, betStake, maxBetPercent, userName);
 
         producer.send(new ProducerRecord<>("bets", "0", toJson(bet)));
     }
@@ -51,12 +52,16 @@ public class FlopmasterKafkaFeederTest {
     public static Object[][] bets() {
 
         return new Object[][] {
-            // stakeFactor, betStake, maxBetPercent, userName
-            {0.3,           5.0,      0,             "user_a"},
-            {0.3,           0.0,      75,            "user_b"},
-            {0.5,           0.0,      0,             "user_c"},
-            {0.0,           0.0,      0,             "FLOPMASTER"},
-            {0.0,           0.0,      25,            "FLOPMASTER"},
+            // timestamp                stakeFactor  betStake  maxBetPercent    userName
+            {"2018-07-05T19:10:00.00Z", 0.3,           5.0,      0,             "user_a"},
+            {"2018-07-05T20:15:00.00Z", 0.3,           0.0,      75,            "user_b"},
+            {"2018-07-05T21:59:00.00Z", 0.5,           0.0,      0,             "user_c"},
+
+            {"2018-07-05T15:00:00.00Z", 0.0,           0.0,      0,             "FLOPMASTER"},
+            {"2018-07-05T18:59:00.00Z", 0.1,           0.1,      25,            "FLOPMASTER"},
+
+            {"2018-07-05T22:00:00.00Z", 0.0,           200,      0,             "excessive better"},
+            {"2018-07-05T23:10:00.00Z", 0.0,           100,      0,             "less excessive better"},
         };
     }
 

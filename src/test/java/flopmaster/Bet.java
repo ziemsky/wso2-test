@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Bet {
 
+    @JsonProperty("time_stamp")
+    private final long timestamp;
+
     @JsonProperty("stake_factor")
     private double stakeFactor;
 
@@ -16,12 +19,21 @@ public class Bet {
     @JsonProperty("username")
     private String userName;
 
-    public Bet(double stakeFactor, double betStake, double maxBetPercent, String userName) {
+    public Bet(long timestamp,
+               double stakeFactor,
+               double betStake,
+               double maxBetPercent,
+               String userName) {
 
+        this.timestamp = timestamp;
         this.stakeFactor = stakeFactor;
         this.betStake = betStake;
         this.maxBetPercent = maxBetPercent;
         this.userName = userName;
+    }
+
+    public long getTimestamp() {
+        return timestamp;
     }
 
     public double getStakeFactor() {

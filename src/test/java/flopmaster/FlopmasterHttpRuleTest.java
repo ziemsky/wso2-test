@@ -11,6 +11,7 @@ import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
+import java.time.Instant;
 
 @RunWith(DataProviderRunner.class)
 public class FlopmasterHttpRuleTest {
@@ -20,10 +21,14 @@ public class FlopmasterHttpRuleTest {
 
     @Test
     @UseDataProvider("bets")
-    public void test(double stakeFactor, double betStake, double maxBetPercent, String userName) {
+    public void test(String timestamp, double stakeFactor, double betStake,
+                     double maxBetPercent, String userName) {
 
         // given
-        final Bet bet = new Bet(stakeFactor, betStake, maxBetPercent, userName);
+        final Bet bet = new Bet(
+            Instant.parse(timestamp).toEpochMilli(),
+            stakeFactor, betStake, maxBetPercent, userName
+        );
 
         final RequestEntity<Bet> requestEntity = RequestEntity
             .post(URI.create(ALERTS_URL))
