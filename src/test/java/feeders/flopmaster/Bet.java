@@ -1,4 +1,4 @@
-package flopmaster;
+package feeders.flopmaster;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

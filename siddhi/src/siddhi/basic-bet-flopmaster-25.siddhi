@@ -1,0 +1,39 @@
+@App:name("flopmaster-25-percent-alert")
+@App:description("Flopmaster 25% max bet alert")
+
+@source(
+  type="kafka",
+  bootstrap.servers="localhost:9092",
+  topic.list="bets",
+  partition.no.list="0",
+  group.id="excessive-better-alert-300",
+  threading.option="single.thread",
+    @map(
+        type = 'json',
+        @attributes(
+            stakeFactor = '$.stake_factor',
+            betStake = '$.bet_stake',
+            maxBetPercent = '$.max_bet_percent',
+            userName = '$.username'
+)))
+define stream IncomingBetsStream(stakeFactor double, betStake double, maxBetPercent double, userName string);
+
+
+
+define table IncomingBetsStream(stakeFactor double, betStake double, maxBetPercent double, userName string);
+
+@sink(
+  type="kafka",
+  bootstrap.servers="localhost:9092",
+  topic="alerts",
+  is.binary.message='FALSE',
+  @map(
+    type='json'
+))
+define stream OutgoingAlertsStream(alert string);
+
+@info(name='BetsWithStakes')
+from IncomingBetsStream[maxBetPercent >= 25 and userName == 'FLOPMASTER']
+select str:concat("max bet over threshhold: ", userName) as alert
+insert into OutgoingAlertsStream;
+
