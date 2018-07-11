@@ -22,9 +22,25 @@ Events emitted from the Siddhi applications under tests can be easily read using
 
 # Running Kafka and WSO2
 
-To easily start and stop Kafka and WSO2 components provided [makefile] can be used,
-remember to update `KAFKA_HOME` and `WSO2_HOME` variables with paths where you deployed Kafka and
-WSO2 SP in. The same `makefile` can be used to start Kafka commandline consumer to monitor events
+To easily start and stop Kafka and WSO2 components provided [makefile] can be used (obviously
+requires that Make is available on the host; it's installed by default on Mac and Linux systems).
+Before using it for the first time create file `env.mk` next to the `makefile` and set `KAFKA_HOME`
+and `WSO2_HOME` variables there, populating them with paths where you deployed Kafka and WSO2 SP in.
+Remember to start Zookeeper before starting Kafka.
+
+See the `makefile` for available goals. Example syntax for executing a goal is:
+```bash
+make zookeeper-start
+``` 
+
+Arguments to goals that require them can be provided as follows:
+```bash
+make kafka-topic-create TOPIC_TO_CREATE=my-topic-name
+```  
+
+Start each component in a separate terminal window. Stop them by `Ctrl+C`.
+
+The same `makefile` can be used to start Kafka commandline consumer to monitor events
 emitted by applications under test.
 
 As an alternative to the `makefile`, follow instructions in 
