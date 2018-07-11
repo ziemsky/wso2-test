@@ -1,19 +1,19 @@
 package feeders.movers;
 
+import static feeders.movers.Topic.BETS;
+
 public class BetEvent implements Event {
 
     private final String selection;
-    private final int price;
     private final String user;
 
-    private BetEvent(String selection, int price, String user) {
+    private BetEvent(String selection, String user) {
         this.selection = selection;
-        this.price = price;
         this.user = user;
     }
 
-    static BetEvent bet(String market, int price, String userName) {
-        return new BetEvent(market, price, userName);
+    static BetEvent bet(String market, String userName) {
+        return new BetEvent(market, userName);
     }
 
     public String getSelection() {
@@ -24,12 +24,8 @@ public class BetEvent implements Event {
         return user;
     }
 
-    public int getPrice() {
-        return price;
-    }
-
     @Override
     public String getTopicName() {
-        return "bets";
+        return BETS.getTopicName();
     }
 }

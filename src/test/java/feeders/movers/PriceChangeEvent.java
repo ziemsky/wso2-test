@@ -1,5 +1,7 @@
 package feeders.movers;
 
+import static feeders.movers.Topic.MARKET_PRICE_CHANGES;
+
 public class PriceChangeEvent implements Event {
 
     private final String selection;
@@ -24,6 +26,6 @@ public class PriceChangeEvent implements Event {
 
     @Override
     public String getTopicName() {
-        return "marketPriceChanges";
+        return MARKET_PRICE_CHANGES.getTopicName();
     }
 }

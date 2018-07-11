@@ -10,7 +10,7 @@
   threading.option="single.thread",
   @map(type = 'json')
 )
-define stream Bets(selection string, userName string);
+define stream Bets(selection string, user string);
 
 
 @source(
@@ -18,11 +18,11 @@ define stream Bets(selection string, userName string);
   bootstrap.servers="localhost:9092",
   topic.list="marketPriceChanges",
   partition.no.list="0",
-  group.id="inplay-match-state",
+  group.id="market-movers",
   threading.option="single.thread",
   @map(type = 'json')
 )
-define stream PriceChanges(market string, odds string);
+define stream PriceChanges(selection string, odds int);
 
 
 @sink(
@@ -34,7 +34,9 @@ define stream PriceChanges(market string, odds string);
 )
 define stream Alerts(user string, selection string);
 
-define stream PriceChangesAboveThreshold(user string, selection string);
+
+define stream PriceChangesAboveThreshold(selection string, odds int);
+
 
 -- todo group price changes by market/selection
 -- todo group bets by customer
