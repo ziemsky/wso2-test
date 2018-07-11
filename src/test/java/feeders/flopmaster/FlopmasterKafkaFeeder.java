@@ -17,7 +17,7 @@ import java.time.Instant;
 import java.util.Properties;
 
 @RunWith(DataProviderRunner.class)
-public class FlopmasterKafkaFeederTest {
+public class FlopmasterKafkaFeeder {
 
     private ObjectMapper objectMapper = new ObjectMapper();
     private Producer<String, String> producer;

@@ -1,0 +1,55 @@
+@App:name("market-movers")
+
+
+@source(
+  type="kafka",
+  bootstrap.servers="localhost:9092",
+  topic.list="bets",
+  partition.no.list="0",
+  group.id="market-movers",
+  threading.option="single.thread",
+  @map(type = 'json')
+)
+define stream Bets(selection string, userName string);
+
+
+@source(
+  type="kafka",
+  bootstrap.servers="localhost:9092",
+  topic.list="marketPriceChanges",
+  partition.no.list="0",
+  group.id="inplay-match-state",
+  threading.option="single.thread",
+  @map(type = 'json')
+)
+define stream PriceChanges(market string, odds string);
+
+
+@sink(
+  type="kafka",
+  bootstrap.servers="localhost:9092",
+  topic="alerts",
+  is.binary.message='FALSE',
+  @map(type='json')
+)
+define stream Alerts(user string, selection string);
+
+define stream PriceChangesAboveThreshold(user string, selection string);
+
+-- todo group price changes by market/selection
+-- todo group bets by customer
+-- SEE https://docs.wso2.com/display/SP420/Analyzing+Trends
+
+@info(name='PriceChangesAboveThreshold')
+from every latestChange=PriceChanges,
+           previousChange=PriceChanges[odds < latestChange.odds - 5]
+select previousChange.selection, previousChange.odds
+insert into PriceChangesAboveThreshold;
+
+
+@info(name='ShrewdBets')
+from PriceChangesAboveThreshold as change join Bets as bet
+on change.selection == bet.selection
+select bet.user, bet.selection
+insert into Alerts;
+
