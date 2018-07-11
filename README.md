@@ -5,6 +5,8 @@ Basic quick'n'dirty project for quick'n'dirty tests of Siddhi applications with 
 - Java 1.8 JDK installed and configured as SDK in Intellij,
 - IntelliJ Siddhi plugin installed and Siddhi SDK configured following instructions
   available in the plugin's website: https://wso2.github.io/siddhi-plugin-idea/
+  NOTE that in this project you need to leave JDK as default SDK for the whole project
+  and only set [Siddhi SDK for the `siddhi` module].   
 - Kafka installed; download and unzip the following in a location of choice:
   https://www.apache.org/dyn/closer.cgi?path=/kafka/1.1.0/kafka_2.11-1.1.0.tgz
 - WSO2 installed; download and unzip the following in a location of choice:
@@ -61,3 +63,5 @@ advanced concepts in an easy to digest manner.
 [WSO2 SP Tutorials]:                https://docs.wso2.com/display/SP420/Tutorials
 
 [Kafka Quick Start](https://kafka.apache.org/quickstart)
+
+[Siddhi SDK for the `siddhi` module]: https://www.jetbrains.com/help/idea/sdk.html#change'module-sdk
