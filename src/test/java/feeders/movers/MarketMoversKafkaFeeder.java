@@ -1,14 +1,18 @@
 package feeders.movers;
 
-import static feeders.movers.Alert.alert;
-import static feeders.movers.BetEvent.bet;
-import static feeders.movers.PriceChangeEvent.price;
 import static feeders.movers.Topic.ALERTS;
+import static feeders.movers.json.incoming.Alert.alert;
+import static feeders.movers.json.outgoing.BetEvent.bet;
+import static feeders.movers.json.outgoing.PriceChangeEvent.price;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import feeders.movers.json.incoming.Alert;
+import feeders.movers.json.incoming.AlertEvent;
+import feeders.movers.json.outgoing.Event;
+import feeders.movers.json.outgoing.Message;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -34,26 +38,29 @@ import java.util.stream.Stream;
 
 public class MarketMoversKafkaFeeder {
 
+    private static final String KAFKA_ADDRESS = "localhost:9092";
     private ObjectMapper objectMapper = new ObjectMapper();
     private Producer<String, String> producer;
-
     private Consumer<String, String> consumer;
-    private static final String KAFKA_ADDRESS = "localhost:9092";
 
     @Before
     public void setUp() {
 
         final Properties producerProps = new Properties();
         producerProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, KAFKA_ADDRESS);
-        producerProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        producerProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        producerProps
+            .put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        producerProps
+            .put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         producer = new KafkaProducer<>(producerProps);
 
         final Properties consumerProps = new Properties();
         consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, KAFKA_ADDRESS);
-        consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "0");
+        consumerProps
+            .put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
+            StringDeserializer.class.getName());
+        consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "market-movers_test");
         consumer = new KafkaConsumer<>(consumerProps);
 
         consumer.subscribe(singletonList(ALERTS.getTopicName()));
@@ -71,22 +78,29 @@ public class MarketMoversKafkaFeeder {
         // given
         feedsOf(
             bet("selection_A", "user_a"),
-            bet("selection_A", "user_b"),
+            bet("selection_B", "user_b"),
+            bet("selection_Z", "user_b"),
 
-            price("selection_A", 1),
-            price("selection_A", 10)
+            price("selection_A_1", 1),
+            price("selection_A_2", 2),
+            price("selection_A_10", 10),
+            price("selection_A_3", 3),
+            price("selection_A_20", 20)
         );
+
+        final Alert[] expectedAlerts = {
+            alert("selection_A2", "user_a"),
+            alert("selection_A3", "user_a"),
+        };
 
         // when
-        final Collection<Alert> actualAlerts = read(10);
+        final Collection<Alert> actualAlerts = read(expectedAlerts.length, 1);
 
         // then
-        assertThat(actualAlerts).containsExactly(
-            alert("selection_A", "user_a")
-        );
+        assertThat(actualAlerts).containsExactly(expectedAlerts);
     }
 
-    private Collection<Alert> read(int maxEventsCount) {
+    private Collection<Alert> read(int maxEventsCount, int timeoutInSecs) {
 
         final List<Alert> alerts = new ArrayList<>();
 
@@ -94,18 +108,24 @@ public class MarketMoversKafkaFeeder {
 
         do {
             stopWatch.start();
-            final ConsumerRecords<String, String> consumerRecords = consumer.poll(1000);
+            final ConsumerRecords<String, String> consumerRecords = consumer.poll(500);
 
-            consumerRecords.forEach(record -> alerts.add(fromJson(record.value())));
+            consumerRecords.forEach(record -> alerts.add(fromJson(record.value()).getEvent()));
+
             stopWatch.stop();
-        } while (alerts.size() < maxEventsCount && stopWatch.getTotalTimeSeconds() < 5);
+        } while (
+            // + 1 above ensures we capture any extraneous events should they be sent
+            alerts.size() < maxEventsCount + 1
+                && stopWatch.getTotalTimeSeconds() < timeoutInSecs
+            );
 
         return alerts;
     }
 
     private void feedsOf(final Event... events) {
         Stream.of(events)
-            .map(event -> new ProducerRecord<>(event.getTopicName(), "0", toJson(event)))
+            .map(Message::new)
+            .map(event -> new ProducerRecord<>(event.getTopic().getTopicName(), "0", toJson(event)))
             .forEach(producer::send);
     }
 
@@ -117,9 +137,9 @@ public class MarketMoversKafkaFeeder {
         }
     }
 
-    private Alert fromJson(final String payload) {
+    private AlertEvent fromJson(final String payload) {
         try {
-            return objectMapper.readValue(payload, Alert.class);
+            return objectMapper.readValue(payload, AlertEvent.class);
         } catch (final IOException e) {
             throw new UncheckedIOException(e);
         }

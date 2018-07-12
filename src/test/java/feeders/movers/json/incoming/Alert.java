@@ -1,14 +1,19 @@
-package feeders.movers;
+package feeders.movers.json.incoming;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-class Alert {
+public class Alert {
 
     @JsonProperty
     private String selection;
 
     @JsonProperty
     private String user;
+
+    @JsonProperty
+    @JsonIgnore
+    private int odds;
 
     public Alert() {
     }
@@ -21,7 +26,7 @@ class Alert {
         this.user = user;
     }
 
-    static Alert alert(final String selection, final String user) {
+    public static Alert alert(final String selection, final String user) {
         return new Alert(selection, user);
     }
 

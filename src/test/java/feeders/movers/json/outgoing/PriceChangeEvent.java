@@ -1,6 +1,8 @@
-package feeders.movers;
+package feeders.movers.json.outgoing;
 
 import static feeders.movers.Topic.MARKET_PRICE_CHANGES;
+
+import feeders.movers.Topic;
 
 public class PriceChangeEvent implements Event {
 
@@ -12,7 +14,7 @@ public class PriceChangeEvent implements Event {
         this.odds = odds;
     }
 
-    static PriceChangeEvent price(String market, int odds) {
+    public static PriceChangeEvent price(String market, int odds) {
         return new PriceChangeEvent(market, odds);
     }
 
@@ -25,7 +27,7 @@ public class PriceChangeEvent implements Event {
     }
 
     @Override
-    public String getTopicName() {
-        return MARKET_PRICE_CHANGES.getTopicName();
+    public Topic getTopic() {
+        return MARKET_PRICE_CHANGES;
     }
 }

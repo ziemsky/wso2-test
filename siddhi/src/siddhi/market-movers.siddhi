@@ -6,10 +6,11 @@
   bootstrap.servers="localhost:9092",
   topic.list="bets",
   partition.no.list="0",
-  group.id="market-movers",
+  group.id="market-movers_bets",
   threading.option="single.thread",
-  @map(type = 'json')
-)
+  @map(
+    type = 'json'
+))
 define stream Bets(selection string, user string);
 
 
@@ -18,10 +19,11 @@ define stream Bets(selection string, user string);
   bootstrap.servers="localhost:9092",
   topic.list="marketPriceChanges",
   partition.no.list="0",
-  group.id="market-movers",
+  group.id="market-movers_price-changes",
   threading.option="single.thread",
-  @map(type = 'json')
-)
+  @map(
+    type = 'json'
+))
 define stream PriceChanges(selection string, odds int);
 
 
@@ -38,20 +40,28 @@ define stream Alerts(user string, selection string);
 define stream PriceChangesAboveThreshold(selection string, odds int);
 
 
--- todo group price changes by market/selection
+-- todo group price changes by market/selection (partition?)
 -- todo group bets by customer
 -- SEE https://docs.wso2.com/display/SP420/Analyzing+Trends
 
 @info(name='PriceChangesAboveThreshold')
-from every latestChange=PriceChanges,
-           previousChange=PriceChanges[odds < latestChange.odds - 5]
+from every previousChange=PriceChanges,
+           latestChange=PriceChanges[odds > (previousChange.odds + 5)]
 select previousChange.selection, previousChange.odds
 insert into PriceChangesAboveThreshold;
 
+--@info(name='ShrewdBets')
+--from Bets
+--select bet.user, bet.selection
+--insert into Alerts;
 
 @info(name='ShrewdBets')
-from PriceChangesAboveThreshold as change join Bets as bet
-on change.selection == bet.selection
-select bet.user, bet.selection
+from PriceChangesAboveThreshold
+select 'fake.user' as user, selection
 insert into Alerts;
 
+--@info(name='ShrewdBets')
+--from PriceChangesAboveThreshold#window.length(1) as priceChange join Bets as bet
+--on priceChange.selection == bet.selection
+--select bet.user, bet.selection
+--insert into Alerts;

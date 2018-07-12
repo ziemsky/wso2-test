@@ -1,6 +1,8 @@
-package feeders.movers;
+package feeders.movers.json.outgoing;
 
 import static feeders.movers.Topic.BETS;
+
+import feeders.movers.Topic;
 
 public class BetEvent implements Event {
 
@@ -12,7 +14,7 @@ public class BetEvent implements Event {
         this.user = user;
     }
 
-    static BetEvent bet(String market, String userName) {
+    public static BetEvent bet(String market, String userName) {
         return new BetEvent(market, userName);
     }
 
@@ -25,7 +27,7 @@ public class BetEvent implements Event {
     }
 
     @Override
-    public String getTopicName() {
-        return BETS.getTopicName();
+    public Topic getTopic() {
+        return BETS;
     }
 }
