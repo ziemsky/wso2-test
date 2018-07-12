@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.stream.Stream;
 
-public class MarketMoversKafkaFeeder {
+public class MarketMoversTest {
 
     private static final String KAFKA_ADDRESS = "localhost:9092";
     private ObjectMapper objectMapper = new ObjectMapper();
@@ -79,18 +79,22 @@ public class MarketMoversKafkaFeeder {
         feedsOf(
             bet("selection_A", "user_a"),
             bet("selection_B", "user_b"),
-            bet("selection_Z", "user_b"),
+            bet("selection_C", "user_c"),
 
-            price("selection_A_1", 1),
-            price("selection_A_2", 2),
-            price("selection_A_10", 10),
-            price("selection_A_3", 3),
-            price("selection_A_20", 20)
+            price("selection_A", 1),
+            price("selection_A", 2),
+            price("selection_A", 10),
+            price("selection_A", 3),
+            price("selection_A", 20),
+            price("selection_B", 22),
+            price("selection_A", 26),
+            price("selection_B", 7)
         );
 
         final Alert[] expectedAlerts = {
-            alert("selection_A2", "user_a"),
-            alert("selection_A3", "user_a"),
+            alert("selection_A", "user_a"),
+            alert("selection_A", "user_a"),
+            alert("selection_A", "user_a"),
         };
 
         // when

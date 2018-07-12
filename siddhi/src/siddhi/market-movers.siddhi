@@ -50,18 +50,10 @@ from every previousChange=PriceChanges,
 select previousChange.selection, previousChange.odds
 insert into PriceChangesAboveThreshold;
 
---@info(name='ShrewdBets')
---from Bets
---select bet.user, bet.selection
---insert into Alerts;
-
 @info(name='ShrewdBets')
-from PriceChangesAboveThreshold
-select 'fake.user' as user, selection
-insert into Alerts;
-
---@info(name='ShrewdBets')
---from PriceChangesAboveThreshold#window.length(1) as priceChange join Bets as bet
---on priceChange.selection == bet.selection
---select bet.user, bet.selection
---insert into Alerts;
+    from PriceChangesAboveThreshold#window.length(1) as priceChange unidirectional
+    join Bets#window.length(10) as bet
+      on priceChange.selection == bet.selection
+  select bet.user, bet.selection
+group by priceChange.selection
+  insert into Alerts;
