@@ -1,16 +1,41 @@
 Basic quick'n'dirty project for quick'n'dirty tests of Siddhi applications with Intellij.
 
-
 # Prerequisites
-- Java 1.8 JDK installed and configured as SDK in Intellij,
-- IntelliJ Siddhi plugin installed and Siddhi SDK configured following instructions
-  available in the plugin's website: https://wso2.github.io/siddhi-plugin-idea/
-  NOTE that in this project you need to leave JDK as default SDK for the whole project
-  and only set [Siddhi SDK for the `siddhi` module].   
+Siddhi applications can be developed and tested using either [Stream Processor Studio] (a web based
+IDE) or [IntelliJ plugin]. 
+
+Stream Processor Studio requires a running instance of the `editor` application to be running with
+[support for Kafka] configured. IntelliJ plugin has this integration configured out of the box and
+does not require a standalone instance of WSO2 SP `editor` and runs Siddhi applications itself.
+
+## Common prerequisites       
 - Kafka installed; download and unzip the following in a location of choice:
-  https://www.apache.org/dyn/closer.cgi?path=/kafka/1.1.0/kafka_2.11-1.1.0.tgz
+  https://www.apache.org/dyn/closer.cgi?path=/kafka/1.1.0/kafka_2.11-1.1.0.tgz 
+
+## Prerequsites for developing in IntelliJ
+- Java 1.8 JDK installed and configured as SDK in Intellij,
+- IntelliJ Siddhi plugin installed and Siddhi SDK configured:
+  https://wso2.github.io/siddhi-plugin-idea/  
+  Make sure to only set Siddhi SDK [for the `siddhi` module] rather than for the whole project
+  (slight departure from what the plugin's documentation describes).
+- IntelliJ run configuration set up for the application under test; see [Intellij plugin] docs for
+  instructions on how to set it up.   
+  
+## Prerequisites for developing in Stream Processing Studio    
 - WSO2 installed; download and unzip the following in a location of choice:
   https://github.com/wso2/product-sp/releases/download/v4.2.0-rc2/wso2sp-4.2.0.zip
+- [Support for Kafka] configured.
+  
+# Development cycle
+Have Kafka running with topics required by your application created.
+
+Edit and run your Siddhi application.
+
+Have an integration test written for the Siddhi application under test, making it feed events to
+appliation's input Kafka topics Kafka and monitor events emitted by the application with assertions;
+see [MarketMoversTest] for an example.
+
+Rinse and repeat.
   
 # Feeding events in to applications via Kafka
   
@@ -62,6 +87,12 @@ advanced concepts in an easy to digest manner.
 [WSO2 SP Quick Start Guide]:        https://docs.wso2.com/display/SP420/Quick+Start+Guide
 [WSO2 SP Tutorials]:                https://docs.wso2.com/display/SP420/Tutorials
 
-[Kafka Quick Start](https://kafka.apache.org/quickstart)
+[Kafka Quick Start]:                https://kafka.apache.org/quickstart
 
-[Siddhi SDK for the `siddhi` module]: https://www.jetbrains.com/help/idea/sdk.html#change'module-sdk
+[for the `siddhi` module]:          https://www.jetbrains.com/help/idea/sdk.html#change'module-sdk
+
+[IntelliJ plugin]:                  https://wso2.github.io/siddhi-plugin-idea/
+[Stream Processor Studio]:          https://docs.wso2.com/display/SP420/Stream+Processor+Studio+Overview
+[support for Kafka]:                https://wso2-extensions.github.io/siddhi-io-kafka/
+
+[MarketMoversTest]:                 file://src/main/test/java/feeders/movers/MarketMoversTest.java                 
