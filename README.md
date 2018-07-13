@@ -14,10 +14,9 @@ does not require a standalone instance of WSO2 SP `editor` and runs Siddhi appli
 
 ## Prerequsites for developing in IntelliJ
 - Java 1.8 JDK installed and configured as SDK in Intellij,
-- IntelliJ Siddhi plugin installed and Siddhi SDK configured:
-  https://wso2.github.io/siddhi-plugin-idea/  
-  Make sure to only set Siddhi SDK [for the `siddhi` module] rather than for the whole project
-  (slight departure from what the plugin's documentation describes).
+- [IntelliJ plugin] for Siddhi installed and [Siddhi SDK] configured. In this project, make sure to
+  only set Siddhi SDK [for the `siddhi` module] rather than for the whole project (slight departure
+  from what the plugin's documentation describes for vanilla configurations).
 - IntelliJ run configuration set up for the application under test; see [Intellij plugin] docs for
   instructions on how to set it up.   
   
@@ -74,25 +73,48 @@ As an alternative to the `makefile`, follow instructions in
 [WSO2 SP Quick Start Guide] and [WSO2 SP Tutorials]. Basic instructions for Kafka can be
 found in [Kafka Quick Start].      
 
-# Intro to WSO2 SP
+# Documentation introducing to WSO2 SP
 To grasp basics of WSO2 SP it's good to refer to [WSO2 SP Quick Start Guide] and
 [WSO2 SP Tutorials]. They provide very good starting point, gradually introducing more and more
-advanced concepts in an easy to digest manner.  
+advanced concepts in an easy to digest manner.
 
+[WSO2 Stream Processor online documentation] is a key source of information. It includes the
+aforementioned tutorials alongside the content of a more reference-style nature; in particular:
+- [User Guide] going deeper into selected topics
+  than the tutorials; in particular:
+  - [Developing Streaming Applications].    
+- [Writing custom Siddhi extensions]
+- [Samples] pointing to example applications available to review and run via the
+  [Stream Processor Studio].
 
-[kafka-console-producer]:           https://kafka.apache.org/quickstart
+To complement the above (in some places, overlapping), [Siddhi engine]'s GitHub site provides more
+reference material; in particular:
+- [Siddhi query guide]
+- [Siddhi extensions] available out of the box.
+         
 
-[makefile]:                         file://makefile 
-
-[WSO2 SP Quick Start Guide]:        https://docs.wso2.com/display/SP420/Quick+Start+Guide
-[WSO2 SP Tutorials]:                https://docs.wso2.com/display/SP420/Tutorials
-
-[Kafka Quick Start]:                https://kafka.apache.org/quickstart
-
-[for the `siddhi` module]:          https://www.jetbrains.com/help/idea/sdk.html#change'module-sdk
-
-[IntelliJ plugin]:                  https://wso2.github.io/siddhi-plugin-idea/
-[Stream Processor Studio]:          https://docs.wso2.com/display/SP420/Stream+Processor+Studio+Overview
-[support for Kafka]:                https://wso2-extensions.github.io/siddhi-io-kafka/
-
-[MarketMoversTest]:                 file://src/main/test/java/feeders/movers/MarketMoversTest.java                 
+[kafka-console-producer]:            https://kafka.apache.org/quickstart
+                                     
+[WSO2 Stream Processor online documentation]: https://docs.wso2.com/display/SP420/Stream+Processor+Documentation                                     
+[WSO2 SP Quick Start Guide]:         https://docs.wso2.com/display/SP420/Quick+Start+Guide
+[WSO2 SP Tutorials]:                 https://docs.wso2.com/display/SP420/Tutorials
+[User Guide]:                        https://docs.wso2.com/display/SP420/User+Guide
+[Developing Streaming Applications]: https://docs.wso2.com/display/SP420/Developing+Streaming+Applications
+[Writing custom Siddhi extensions]:  https://docs.wso2.com/display/SP420/Writing+Custom+Siddhi+Extensions
+[Samples]:                           https://docs.wso2.com/display/SP420/Samples?src=sidebar
+                                     
+[Siddhi engine]:                     https://wso2.github.io/siddhi/
+[Siddhi query guide]:                https://wso2.github.io/siddhi/documentation/siddhi-4.0/
+[Siddhi extensions]:                 https://wso2.github.io/siddhi/extensions/                 
+                                     
+[Kafka Quick Start]:                 https://kafka.apache.org/quickstart
+                                     
+                                     
+[IntelliJ plugin]:                   https://wso2.github.io/siddhi-plugin-idea/
+[Siddhi SDK]:                        https://wso2.github.io/siddhi-plugin-idea/
+[Stream Processor Studio]:           https://docs.wso2.com/display/SP420/Stream+Processor+Studio+Overview
+[support for Kafka]:                 https://wso2-extensions.github.io/siddhi-io-kafka/
+[makefile]:                          file://makefile 
+[for the `siddhi` module]:           https://www.jetbrains.com/help/idea/sdk.html#change'module-sdk
+                                     
+[MarketMoversTest]:                  file://src/main/test/java/feeders/movers/MarketMoversTest.java
