@@ -94,7 +94,6 @@ public class MarketMoversTest {
         final Alert[] expectedAlerts = {
             alert("selection_A", "user_a"),
             alert("selection_A", "user_a"),
-            alert("selection_A", "user_a"),
         };
 
         // when
