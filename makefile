@@ -35,7 +35,7 @@ kafka-message-consume:
 	"${KAFKA_HOME}/bin/kafka-console-consumer.sh" --bootstrap-server localhost:9092 --topic $(OUTBOUND_TOPIC) --from-beginning
 
 kafka-topic-set-retention:
-	${KAFKA_HOME}/bin/kafka-configs.sh --zookeeper $(ZOOKEEPER_ADDR) --alter --entity-type topics --entity-name $(INBOUND_TOPIC) --add-config retention.ms=1000
+	${KAFKA_HOME}/bin/kafka-configs.sh --zookeeper $(ZOOKEEPER_ADDR) --alter --entity-type topics --entity-name $(TOPIC) --add-config retention.ms=1000
 #	${KAFKA_HOME}/bin/kafka-topics.sh --zookeeper $(ZOOKEEPER_ADDR) --alter --topic $(INBOUND_TOPIC) --config retention.ms=3000
 
 

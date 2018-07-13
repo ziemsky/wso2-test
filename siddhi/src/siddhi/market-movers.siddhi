@@ -11,7 +11,7 @@
   @map(
     type = 'json'
 ))
-define stream Bets(selection string, user string);
+define stream Bets(selection string, user string, odds int);
 
 
 @source(
@@ -32,12 +32,15 @@ define stream PriceChanges(selection string, odds int);
   bootstrap.servers="localhost:9092",
   topic="alerts",
   is.binary.message='FALSE',
-  @map(type='json')
-)
-define stream Alerts(user string, selection string);
+  @map(
+    type='json',
+    enclosing.element='alerts' -- forces all alerts to be returned within array
+))
+define stream Alerts(user string, selection string, oddsBettedOn int, oddsNew int);
 
 
-define stream PriceChangesAboveThreshold(selection string, odds int);
+--@sink(type='log', prefix='DEBUG')
+define stream PriceChangesAboveThreshold(selection string, oddsPrevious int, oddsCurrent int);
 
 
 -- SEE https://docs.wso2.com/display/SP420/Analyzing+Trends
@@ -55,9 +58,11 @@ begin
 
   -- B)
   --@info(name='PriceChangesAboveThreshold')
-  from every previousChange=PriceChanges,
-             latestChange=PriceChanges[odds > (previousChange.odds + 5)]
-  select previousChange.selection, previousChange.odds
+  from every previousPrice=PriceChanges,
+             latestPrice=PriceChanges[odds > (previousPrice.odds + 5)]
+  select latestPrice.selection,
+         previousPrice.odds as oddsPrevious,
+         latestPrice.odds as oddsCurrent
   insert into #PriceChangesAboveThreshold;
   -- todo detect total change across a larger number of changes
   -- sequence is probably not the best choice; window? table? pattern? aggregation (is time-unit based)?
@@ -65,10 +70,14 @@ begin
   -- C)
   --@info(name='ShrewdBets')
       from #PriceChangesAboveThreshold#window.length(1) as priceChange unidirectional
-      join Bets#window.time(10 sec) as bet -- real window likely larger
+      join Bets#window.time(10 sec) as bet -- real window likely longer
         on priceChange.selection == bet.selection
-    select bet.user, bet.selection
+       and bet.odds <= priceChange.oddsPrevious
+    select bet.user,
+           bet.selection,
+           bet.odds as oddsBettedOn,
+           priceChange.oddsCurrent as oddsNew
     insert into Alerts;
-    -- todo identify bets placed before offending change - need timestamp?
+--    -- todo identify bets placed before offending change - need timestamp?
 
 end;

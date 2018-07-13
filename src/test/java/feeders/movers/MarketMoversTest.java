@@ -11,6 +11,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import feeders.movers.json.incoming.Alert;
 import feeders.movers.json.incoming.AlertEvent;
+import feeders.movers.json.incoming.AlertsEvent;
 import feeders.movers.json.outgoing.Event;
 import feeders.movers.json.outgoing.Message;
 import org.apache.kafka.clients.consumer.Consumer;
@@ -46,22 +47,9 @@ public class MarketMoversTest {
     @Before
     public void setUp() {
 
-        final Properties producerProps = new Properties();
-        producerProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, KAFKA_ADDRESS);
-        producerProps
-            .put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        producerProps
-            .put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        producer = new KafkaProducer<>(producerProps);
+        producer = getProducer();
 
-        final Properties consumerProps = new Properties();
-        consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, KAFKA_ADDRESS);
-        consumerProps
-            .put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
-            StringDeserializer.class.getName());
-        consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "market-movers_test");
-        consumer = new KafkaConsumer<>(consumerProps);
+        consumer = getConsumer();
 
         consumer.subscribe(singletonList(ALERTS.getTopicName()));
     }
@@ -72,35 +60,76 @@ public class MarketMoversTest {
         consumer.close();
     }
 
+
+    // Case: simplest case:
+    // Given odds change
+    //   And change exceeds threshold
+    //  Then reports bets with previous odds value
     @Test
-    public void sendBetsAndPrices() {
+    public void alertsOnBetsBeforePriceChangeSimplestCase() {
 
         // given
         feedsOf(
-            bet("selection_A", "user_a"),
-            bet("selection_B", "user_b"),
-            bet("selection_C", "user_c"),
+            bet("selection_A", "shrewd_user",  1),
+            bet("selection_A", "shrewd_user",  2),
+            bet("selection_A", "shrewd_user",  20),
 
             price("selection_A", 1),
-            price("selection_A", 2),
-            price("selection_A", 10),
-            price("selection_A", 3),
-            price("selection_A", 20),
-            price("selection_B", 22),
-            price("selection_A", 26),
-            price("selection_B", 7)
+            price("selection_A", 3), // change not exceeding threshold
+            price("selection_A", 10)  // change exceeding threshold
         );
 
         final Alert[] expectedAlerts = {
-            alert("selection_A", "user_a"),
-            alert("selection_A", "user_a"),
+            alert("selection_A", "shrewd_user", 1, 10),
+            alert("selection_A", "shrewd_user", 2, 10),
         };
 
         // when
         final Collection<Alert> actualAlerts = read(expectedAlerts.length, 1);
 
         // then
-        assertThat(actualAlerts).containsExactly(expectedAlerts);
+        assertThat(actualAlerts).containsExactlyInAnyOrder(expectedAlerts);
+    }
+
+    @Test
+    public void alertsonBetsBeforePriceChangeComplexCase() {
+
+        // given
+        feedsOf(
+            bet("selection_A", "shrewd_user",  1),
+            bet("selection_A", "shrewd_user",  2),
+            bet("selection_A", "shrewd_user",  20),
+
+            bet("selection_B", "regular_user", 22),
+            bet("selection_B", "regular_user", 7),
+
+            bet("selection_C", "shrewd_user",  10),
+
+            price("selection_A", 1),
+            price("selection_A", 2),
+            price("selection_A", 10),
+            price("selection_C", 10),
+
+            price("selection_A", 3),
+            price("selection_A", 20),
+            price("selection_B", 22),
+            price("selection_A", 26),
+            price("selection_B", 7),
+            price("selection_C", 16)
+        );
+
+        final Alert[] expectedAlerts = {
+            alert("selection_A", "shrewd_user", 1, 10),
+            alert("selection_A", "shrewd_user", 2, 10),
+            alert("selection_A", "shrewd_user", 20, 26),
+            alert("selection_C", "shrewd_user", 10, 16),
+        };
+
+        // when
+        final Collection<Alert> actualAlerts = read(expectedAlerts.length, 1);
+
+        // then
+        assertThat(actualAlerts).containsExactlyInAnyOrder(expectedAlerts);
     }
 
     private Collection<Alert> read(int maxEventsCount, int timeoutInSecs) {
@@ -113,7 +142,13 @@ public class MarketMoversTest {
             stopWatch.start();
             final ConsumerRecords<String, String> consumerRecords = consumer.poll(500);
 
-            consumerRecords.forEach(record -> alerts.add(fromJson(record.value()).getEvent()));
+            consumerRecords.forEach(record -> {
+                final AlertsEvent alertsEvent = fromJson(record.value(), AlertsEvent.class);
+
+                Stream.of(alertsEvent.getAlerts())
+                    .map(AlertEvent::getAlert)
+                    .forEach(alerts::add);
+            });
 
             stopWatch.stop();
         } while (
@@ -140,11 +175,32 @@ public class MarketMoversTest {
         }
     }
 
-    private AlertEvent fromJson(final String payload) {
+    private <T> T fromJson(final String payload, final Class<T> payloadType) {
         try {
-            return objectMapper.readValue(payload, AlertEvent.class);
+            return objectMapper.readValue(payload, payloadType);
         } catch (final IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    private Consumer<String, String> getConsumer() {
+        final Properties consumerProps = new Properties();
+        consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, KAFKA_ADDRESS);
+        consumerProps
+            .put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
+            StringDeserializer.class.getName());
+        consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "market-movers_test");
+        return new KafkaConsumer<>(consumerProps);
+    }
+
+    private Producer<String, String> getProducer() {
+        final Properties producerProps = new Properties();
+        producerProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, KAFKA_ADDRESS);
+        producerProps
+            .put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        producerProps
+            .put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        return new KafkaProducer<>(producerProps);
     }
 }
