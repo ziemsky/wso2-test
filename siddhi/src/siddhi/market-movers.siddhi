@@ -40,30 +40,35 @@ define stream Alerts(user string, selection string);
 define stream PriceChangesAboveThreshold(selection string, odds int);
 
 
--- todo group price changes by market/selection (partition?)
--- todo group bets by customer
--- todo window may not work - replace with table? (aggreation is time based)
 -- SEE https://docs.wso2.com/display/SP420/Analyzing+Trends
 
 
 -- Algorithm in pseudo code:
 -- A) for each selection
 -- B)   identify price increments exceeding threshold
--- C)   for each price, identify past bets placed before the price change
+-- C)   for each price, identify past bets placed before the price change within a window of time
 
 
--- B)
-@info(name='PriceChangesAboveThreshold')
-from every previousChange=PriceChanges,
-           latestChange=PriceChanges[odds > (previousChange.odds + 5)]
-select previousChange.selection, previousChange.odds
-insert into PriceChangesAboveThreshold;
+-- A)
+partition with (selection of PriceChanges)
+begin
 
--- C)
-@info(name='ShrewdBets')
-    from PriceChangesAboveThreshold#window.length(1) as priceChange unidirectional
-    join Bets#window.length(10) as bet
-      on priceChange.selection == bet.selection
-  select bet.user, bet.selection
-group by priceChange.selection
-  insert into Alerts;
+  -- B)
+  --@info(name='PriceChangesAboveThreshold')
+  from every previousChange=PriceChanges,
+             latestChange=PriceChanges[odds > (previousChange.odds + 5)]
+  select previousChange.selection, previousChange.odds
+  insert into #PriceChangesAboveThreshold;
+  -- todo detect total change across a larger number of changes
+  -- sequence is probably not the best choice; window? table? pattern? aggregation (is time-unit based)?
+
+  -- C)
+  --@info(name='ShrewdBets')
+      from #PriceChangesAboveThreshold#window.length(1) as priceChange unidirectional
+      join Bets#window.time(10 sec) as bet -- real window likely larger
+        on priceChange.selection == bet.selection
+    select bet.user, bet.selection
+    insert into Alerts;
+    -- todo identify bets placed before offending change - need timestamp?
+
+end;
